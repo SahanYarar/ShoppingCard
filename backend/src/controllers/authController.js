@@ -6,7 +6,7 @@ exports.register = async (req, res) => {
     const { email, password, name } = req.body;
     console.log('Registering user:', { email, name });
 
-    // Create user in Firebase Auth
+    // Create user 
     const userRecord = await admin.auth().createUser({
       email,
       password,
@@ -15,26 +15,25 @@ exports.register = async (req, res) => {
     console.log('User created in Firebase Auth:', userRecord.uid);
 
     try {
-      // Create user document in Firestore
+      // Create user document
       const userData = {
         email,
         name,
         createdAt: new Date().toISOString()
       };
       
-      // Check if Firestore is initialized
+      
       if (!db) {
         console.warn('Firestore not initialized, skipping Firestore write');
       } else {
         try {
-          // Create the users collection if it doesn't exist
+          // Create the users collection
           const userRef = db.collection('users').doc(userRecord.uid);
           await userRef.set(userData);
           console.log('User data stored in Firestore:', userData);
         } catch (firestoreError) {
           if (firestoreError.code === 5) {
             console.warn('Firestore database might not be initialized. Please check Firebase Console.');
-            // Don't delete the auth user in this case
             console.log('Keeping auth user despite Firestore error');
           } else {
             throw firestoreError;
@@ -65,7 +64,7 @@ exports.register = async (req, res) => {
       }
     }
 
-    // Generate custom token for immediate login
+    // Generate custom token
     const token = await admin.auth().createCustomToken(userRecord.uid);
     console.log('Custom token generated');
 
@@ -87,7 +86,6 @@ exports.register = async (req, res) => {
       details: error.details || 'No additional details'
     });
     
-    // Handle specific Firebase errors
     if (error.code === 'auth/email-already-exists') {
       return res.status(400).json({
         success: false,
@@ -121,7 +119,7 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     console.log('Login attempt for:', email);
 
-    // Sign in with email and password using Firebase REST API
+    // Sign in with email and password
     const response = await axios.post(
       `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
       {
@@ -134,7 +132,7 @@ exports.login = async (req, res) => {
     const { localId, email: userEmail, displayName } = response.data;
     console.log('User authenticated:', localId);
 
-    // Get user data from Firestore
+    // Get user data
     let userData = null;
     if (db) {
       try {
@@ -146,7 +144,7 @@ exports.login = async (req, res) => {
       }
     }
 
-    // Create a custom token for the user
+    // Create a custom token
     const token = await admin.auth().createCustomToken(localId);
     console.log('Custom token generated');
 

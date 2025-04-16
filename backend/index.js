@@ -5,7 +5,6 @@ const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 
-// Configure CORS - more specific for development
 app.use(cors({
   origin: ['http://localhost:8081', 'http://192.168.1.192:8081'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -20,16 +19,14 @@ app.get("/", (req, res) => {
   res.send("Welcome to Sahan Store API...");
 });
 
-// Mount auth routes
 app.use('/auth', authRoutes);
 
-// Products route without pagination
 app.get("/products", (req, res) => {
   try {
     const { search, sortBy, sortOrder } = req.query;
     let filteredProducts = [...products];
 
-    // Apply search filter if search term is provided
+    //Search filter
     if (search) {
       const searchTerm = search.toLowerCase();
       filteredProducts = filteredProducts.filter(product => 
@@ -39,7 +36,7 @@ app.get("/products", (req, res) => {
       );
     }
 
-    // Apply sorting if sort parameters are provided
+    // Apply sort
     if (sortBy) {
       const order = sortOrder === 'desc' ? -1 : 1;
       filteredProducts.sort((a, b) => {
@@ -58,7 +55,6 @@ app.get("/products", (req, res) => {
   }
 });
 
-// Get single product by ID
 app.get("/products/:id", (req, res) => {
   try {
     const productId = parseInt(req.params.id);

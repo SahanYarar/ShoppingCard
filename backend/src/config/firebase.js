@@ -2,17 +2,14 @@ require('dotenv').config();
 const admin = require('firebase-admin');
 const path = require('path');
 
-// Initialize Firebase Admin using service account
 const serviceAccount = require('../../sahan-store-firebase-adminsdk-fbsvc-fc1a11f7de.json');
 
-// Log service account details (without sensitive information)
 console.log('Initializing Firebase with project:', serviceAccount.project_id);
 
 let db;
 let auth;
 
 try {
-  // Initialize Firebase Admin
   const app = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     projectId: serviceAccount.project_id
@@ -21,7 +18,6 @@ try {
   console.log('Firebase Admin initialized successfully');
   console.log('Firebase App name:', app.name);
   
-  // Initialize Firestore
   db = admin.firestore();
   console.log('Firestore instance created');
   
@@ -34,7 +30,6 @@ try {
   db.settings(settings);
   console.log('Firestore settings configured:', settings);
   
-  // Test Firestore connection
   const testDoc = db.collection('test').doc('test');
   testDoc.set({ test: true })
     .then(() => {
