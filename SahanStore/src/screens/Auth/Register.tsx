@@ -23,6 +23,8 @@ export default function Register() {
   const handleRegister = async () => {
     try {
       setLoading(true);
+      console.log('Attempting registration with:', { email, name });
+      
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -32,9 +34,17 @@ export default function Register() {
       });
 
       const data = await response.json();
+      console.log('Register response:', { status: response.status, data });
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        console.log('Registration failed with status:', response.status);
+        Alert.alert(
+          'Error',
+          data.message || 'Registration failed. Please try again.',
+          [{ text: 'OK' }],
+          { cancelable: true }
+        );
+        return;
       }
 
       // Store the token and user data
@@ -48,8 +58,13 @@ export default function Register() {
       // Navigate to home screen
       router.replace('/');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
-      Alert.alert('Error', errorMessage);
+      console.error('Registration error:', error);
+      Alert.alert(
+        'Error',
+        'Registration failed. Please try again.',
+        [{ text: 'OK' }],
+        { cancelable: true }
+      );
     } finally {
       setLoading(false);
     }

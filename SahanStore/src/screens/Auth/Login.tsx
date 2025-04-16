@@ -23,6 +23,8 @@ export default function Login() {
   const handleLogin = async () => {
     try {
       setLoading(true);
+      console.log('Attempting login with:', { email });
+      
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -32,9 +34,17 @@ export default function Login() {
       });
 
       const data = await response.json();
+      console.log('Login response:', { status: response.status, data });
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        console.log('Login failed with status:', response.status);
+        Alert.alert(
+          'Error',
+          data.message || 'Invalid email or password',
+          [{ text: 'OK' }],
+          { cancelable: true }
+        );
+        return;
       }
 
       // Store the token and user data
@@ -48,9 +58,13 @@ export default function Login() {
       // Navigate to home screen
       router.replace('/');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
       console.error('Login error:', error);
-      Alert.alert('Error', errorMessage);
+      Alert.alert(
+        'Error',
+        'Invalid email or password',
+        [{ text: 'OK' }],
+        { cancelable: true }
+      );
     } finally {
       setLoading(false);
     }

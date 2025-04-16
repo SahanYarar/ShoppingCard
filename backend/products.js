@@ -145,7 +145,7 @@ const products = [
     brand: "Eti",
     desc: "White chocolate",
     price: 8.99,
-    image: "https://res.cloudinary.com/dz6ksxjt2/image/upload/v1744760567/1500x1500_thumb_st004592_x3b5dw.jpg",
+    image: "https://res.cloudinary.com/dz6ksxjt2/image/upload/v1744819613/07036790-c19637-1650x1650_800x_xjybki.jpg",
     category: "Chocolate",
     location: "Turkey"
   },
@@ -245,7 +245,7 @@ const products = [
     brand: "Eti",
     desc: "Rich chocolate flavored milk",
     price: 9.99,
-    image: "https://res.cloudinary.com/dz6ksxjt2/image/upload/v1744759893/eti-square-chocolate-with-pistachio-865988_dn37yk.jpg",
+    image: "https://res.cloudinary.com/dz6ksxjt2/image/upload/v1744819656/07033706-5472c0-1650x1650_800x_znk9fn.jpg",
     category: "Chocolate",
     location: "Turkey"
   },
