@@ -126,7 +126,7 @@ export default function Home() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
-          {user ? `Advertiser: ${user.name}` : 'Advertiser: Guest'}
+          {user ? `${user.name}` : 'Guest'}
         </Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Ionicons name="log-out-outline" size={24} color={theme.colors.primary} />
@@ -191,8 +191,9 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.text.light,
   },
   headerTitle: {
-    fontSize: theme.typography.fontSize.md,
+    fontSize: theme.typography.fontSize.xl,
     color: theme.colors.text.primary,
+    fontFamily: theme.typography.fontFamily.bold
   },
   logoutButton: {
     padding: theme.spacing.sm,
