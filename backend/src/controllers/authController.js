@@ -1,4 +1,5 @@
 const { admin, db } = require('../config/firebase');
+const axios = require('axios');
 
 exports.register = async (req, res) => {
   try {
@@ -120,19 +121,24 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     console.log('Login attempt for:', email);
 
-    // Get user by email
-    const userRecord = await admin.auth().getUserByEmail(email);
-    console.log('User found:', userRecord.uid);
-    
-    // Generate custom token
-    const token = await admin.auth().createCustomToken(userRecord.uid);
-    console.log('Custom token generated');
+    // Sign in with email and password using Firebase REST API
+    const response = await axios.post(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
+      {
+        email,
+        password,
+        returnSecureToken: true
+      }
+    );
+
+    const { localId, email: userEmail, displayName } = response.data;
+    console.log('User authenticated:', localId);
 
     // Get user data from Firestore
     let userData = null;
     if (db) {
       try {
-        const userDoc = await db.collection('users').doc(userRecord.uid).get();
+        const userDoc = await db.collection('users').doc(localId).get();
         userData = userDoc.data();
         console.log('User data retrieved from Firestore');
       } catch (firestoreError) {
@@ -140,33 +146,45 @@ exports.login = async (req, res) => {
       }
     }
 
+    // Create a custom token for the user
+    const token = await admin.auth().createCustomToken(localId);
+    console.log('Custom token generated');
+
     res.json({
       success: true,
       message: 'Login successful',
       token,
       user: {
-        uid: userRecord.uid,
-        email: userRecord.email,
-        name: userRecord.displayName || (userData?.name || 'User')
+        uid: localId,
+        email: userEmail,
+        name: displayName || (userData?.name || 'User')
       }
     });
   } catch (error) {
     console.error('Login error:', {
-      code: error.code,
-      message: error.message,
+      code: error.response?.data?.error?.code,
+      message: error.response?.data?.error?.message || error.message,
       stack: error.stack
     });
     
-    if (error.code === 'auth/user-not-found') {
+    if (error.response?.data?.error?.message === 'INVALID_PASSWORD' || 
+        error.response?.data?.error?.message === 'EMAIL_NOT_FOUND') {
       return res.status(401).json({
         success: false,
-        message: 'User not found'
+        message: 'Invalid email or password'
+      });
+    }
+
+    if (error.response?.data?.error?.message === 'INVALID_EMAIL') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email address'
       });
     }
 
     res.status(401).json({
       success: false,
-      message: 'Invalid email or password'
+      message: 'Login failed'
     });
   }
 };
