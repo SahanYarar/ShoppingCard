@@ -125,7 +125,9 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Advertiser: {user?.name || 'User'}</Text>
+        <Text style={styles.headerTitle}>
+          {user ? `Advertiser: ${user.name}` : 'Advertiser: Guest'}
+        </Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Ionicons name="log-out-outline" size={24} color={theme.colors.primary} />
         </TouchableOpacity>

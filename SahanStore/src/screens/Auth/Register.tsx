@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { API_URL } from '../../config';
 import { theme } from '../../theme/theme';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -17,6 +18,7 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleRegister = async () => {
     try {
@@ -35,8 +37,13 @@ export default function Register() {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Store the token
+      // Store the token and user data
       global.token = data.token;
+      await login({
+        id: data.user.uid,
+        email: data.user.email,
+        name: data.user.name,
+      });
 
       // Navigate to home screen
       router.replace('/');

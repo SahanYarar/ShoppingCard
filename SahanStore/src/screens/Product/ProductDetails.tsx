@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../../contexts/CartContext';
 import { API_URL } from '../../config';
 import { theme } from '../../theme/theme';
+import { useRouter } from 'expo-router';
 
 interface ProductDetailsProps {
   productId: string;
@@ -15,6 +16,7 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -70,6 +72,11 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="chevron-back" size={32} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+      </View>
       <View style={styles.imageContainer}>
         <Image 
           source={{ uri: product.image }} 
@@ -108,6 +115,22 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+    paddingTop: 50,
+  },
+  backButton: {
+    padding: theme.spacing.md,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 25,
     backgroundColor: theme.colors.background,
   },
   centerContainer: {
