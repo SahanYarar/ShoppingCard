@@ -1,15 +1,15 @@
 export const theme = {
   colors: {
-    primary: '#1A434E', // Warm brown for primary actions
-    secondary: '#D2691E', // Chocolate orange for secondary elements
-    background: '#FFFFFF', // Light grey background
-    surface: '#F5F6FA', // White for cards
+    primary: '#1A434E', // primary actions
+    secondary: '#D2691E', // for secondary elements
+    background: '#FFFFFF', // Background
+    surface: '#F5F6FA', //  cards
     text: {
-      primary: '#1A434E', // Dark brown for main text
-      secondary: '#1A434E', // Medium brown for secondary text
-      light: '#1A434E', // Light brown for subtle text
+      primary: '#1A434E', //  for main text
+      secondary: '#1A434E', //  for secondary text
+      light: '#1A434E', //  for subtle text
     },
-    accent: '#FF9800', // Orange for highlights
+    accent: '#FF9800', //for highlights
     error: '#D32F2F',
     success: '#388E3C',
   },

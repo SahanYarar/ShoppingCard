@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user data on mount
+    
     const loadStoredUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem('user');

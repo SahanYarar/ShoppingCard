@@ -55,7 +55,6 @@ export default function Login() {
         name: data.user.name,
       });
 
-      // Navigate to home screen
       router.replace('/');
     } catch (error) {
       console.error('Login error:', error);

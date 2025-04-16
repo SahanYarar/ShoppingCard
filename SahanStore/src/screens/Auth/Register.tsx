@@ -55,7 +55,6 @@ export default function Register() {
         name: data.user.name,
       });
 
-      // Navigate to home screen
       router.replace('/');
     } catch (error) {
       console.error('Registration error:', error);
