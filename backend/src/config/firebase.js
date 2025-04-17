@@ -38,7 +38,7 @@ try {
     })
     .then(() => {
       console.log('Test document cleaned up');
-    })
+    })  
     .catch(error => {
       if (error.code === 5) {
         console.warn('Firestore database might not be initialized. Please check Firebase Console.');
