@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { useCart } from '../../contexts/CartContext';
 import { theme } from '../../theme/theme';
+import { useRouter } from 'expo-router';
 
 interface CartItem {
   id: number;
@@ -11,6 +12,14 @@ interface CartItem {
 
 export default function Cart() {
   const { cartItems, removeFromCart, updateQuantity, total } = useCart();
+  const router = useRouter();
+
+  const handlePayment = () => {
+    router.push({
+      pathname: '/payment',
+      params: { totalAmount: total.toString() }
+    });
+  };
 
   const renderItem = ({ item }: { item: CartItem }) => (
     <View style={styles.cartItem}>
@@ -55,7 +64,10 @@ export default function Cart() {
       {cartItems.length > 0 && (
         <View style={styles.totalContainer}>
           <Text style={styles.totalText}>Total: ₺{total.toFixed(2)}</Text>
-          <TouchableOpacity style={styles.checkoutButton}>
+          <TouchableOpacity 
+            style={styles.checkoutButton}
+            onPress={handlePayment}
+          >
             <Text style={styles.checkoutButtonText}>Payment</Text>
           </TouchableOpacity>
         </View>
