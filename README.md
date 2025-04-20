@@ -40,29 +40,29 @@
 ```
 SahanStore/
 ├── src/
-│   ├── app/           # Main application logic
-│   ├── assets/        # Static resources
-│   ├── components/    # Reusable UI components
-│   ├── contexts/      # Context providers and hooks
-│   ├── navigation/    # Navigation configuration
-│   ├── screens/       # Screen components
-│   ├── theme/         # Styling and theming
-│   └── types/         # TypeScript type definitions
-├── app.tsx            # Root component
-└── package.json       # Dependencies and scripts
+│   ├── app/           
+│   ├── assets/       
+│   ├── components/    
+│   ├── contexts/      
+│   ├── navigation/    
+│   ├── screens/       
+│   ├── theme/         
+│   └── types/         
+├── app.tsx            
+└── package.json       
 ```
 
 ### 2.2 Backend
 ```
 backend/
 ├── src/
-│   ├── config/        # Configuration files
-│   ├── controllers/   # Business logic
-│   ├── middleware/    # Custom middleware
-│   └── routes/        # API routes
-├── index.js           # Server entry point
-├── products.js        # Product data
-└── package.json       # Dependencies and scripts
+│   ├── config/        
+│   ├── controllers/   
+│   ├── middleware/    
+│   └── routes/       
+├── index.js          
+├── products.js        
+└── package.json     
 ```
 
 ## 3. SahanStore Frontend Implementation
