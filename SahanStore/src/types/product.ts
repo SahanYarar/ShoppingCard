@@ -9,4 +9,14 @@ export interface Product {
 
 export interface CartItem extends Product {
   quantity: number;
+}
+
+export interface Comment {
+  id: string;
+  productId: string;
+  userId: string;
+  userName: string;
+  text: string;
+  rating: number;
+  createdAt: string;
 } 

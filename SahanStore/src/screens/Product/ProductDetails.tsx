@@ -1,11 +1,12 @@
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, TextInput } from 'react-native';
 import { useState, useEffect } from 'react';
-import { Product } from '../../types/product';
+import { Product, Comment } from '../../types/product';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../../contexts/CartContext';
 import { API_URL } from '../../config';
 import { theme } from '../../theme/theme';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ProductDetailsProps {
   productId: string;
@@ -15,7 +16,12 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [rating, setRating] = useState(5);
+  const [commentLoading, setCommentLoading] = useState(false);
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -27,6 +33,12 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
         }
         const data = await response.json();
         setProduct(data);
+        // Fetch comments for the product
+        const commentsResponse = await fetch(`${API_URL}/products/${productId}/comments`);
+        if (commentsResponse.ok) {
+          const commentsData = await commentsResponse.json();
+          setComments(commentsData);
+        }
       } catch (error) {
         console.error('Error fetching product:', error);
         setError(error instanceof Error ? error.message : 'An error occurred');
@@ -37,6 +49,37 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
 
     fetchProduct();
   }, [productId]);
+
+  const handleAddComment = async () => {
+    if (!user || !newComment.trim()) return;
+
+    setCommentLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/products/${productId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: newComment,
+          rating,
+          userId: user.id,
+          userName: user.name,
+        }),
+      });
+
+      if (response.ok) {
+        const comment = await response.json();
+        setComments([...comments, comment]);
+        setNewComment('');
+        setRating(5);
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    } finally {
+      setCommentLoading(false);
+    }
+  };
 
   const handleAddToCart = () => {
     if (product) {
@@ -105,6 +148,78 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
           <Ionicons name="cart" size={24} color="white" />
           <Text style={styles.addToCartText}>Add to Cart</Text>
         </TouchableOpacity>
+
+        <View style={styles.commentsSection}>
+          <Text style={styles.sectionTitle}>Comments</Text>
+          
+          {user ? (
+            <View style={styles.addCommentContainer}>
+              <TextInput
+                style={styles.commentInput}
+                placeholder="Write your comment..."
+                value={newComment}
+                onChangeText={setNewComment}
+                multiline
+              />
+              <View style={styles.ratingContainer}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity
+                    key={star}
+                    onPress={() => setRating(star)}
+                  >
+                    <Ionicons
+                      name={star <= rating ? "star" : "star-outline"}
+                      size={24}
+                      color={theme.colors.primary}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity
+                style={[styles.addCommentButton, !newComment.trim() && styles.disabledButton]}
+                onPress={handleAddComment}
+                disabled={!newComment.trim() || commentLoading}
+              >
+                {commentLoading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.addCommentButtonText}>Post Comment</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.loginPrompt}
+              onPress={() => router.push('/login')}
+            >
+              <Text style={styles.loginPromptText}>Login to leave a comment</Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.commentsList}>
+            {comments.map((comment) => (
+              <View key={comment.id} style={styles.commentItem}>
+                <View style={styles.commentHeader}>
+                  <Text style={styles.commentUserName}>{comment.userName}</Text>
+                  <View style={styles.commentRating}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Ionicons
+                        key={star}
+                        name={star <= comment.rating ? "star" : "star-outline"}
+                        size={16}
+                        color={theme.colors.primary}
+                      />
+                    ))}
+                  </View>
+                </View>
+                <Text style={styles.commentText}>{comment.text}</Text>
+                <Text style={styles.commentDate}>
+                  {new Date(comment.createdAt).toLocaleDateString()}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
@@ -216,5 +331,79 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.lg,
     fontWeight: 'bold',
     marginLeft: theme.spacing.md,
+  },
+  commentsSection: {
+    marginTop: theme.spacing.xl,
+  },
+  addCommentContainer: {
+    marginBottom: theme.spacing.lg,
+  },
+  commentInput: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: theme.spacing.md,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    marginBottom: theme.spacing.md,
+  },
+  addCommentButton: {
+    backgroundColor: theme.colors.primary,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  addCommentButtonText: {
+    color: theme.colors.surface,
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: 'bold',
+  },
+  loginPrompt: {
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  loginPromptText: {
+    color: theme.colors.primary,
+    fontSize: theme.typography.fontSize.md,
+  },
+  commentsList: {
+    gap: theme.spacing.md,
+  },
+  commentItem: {
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  commentUserName: {
+    fontSize: theme.typography.fontSize.md,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+  },
+  commentRating: {
+    flexDirection: 'row',
+  },
+  commentText: {
+    fontSize: theme.typography.fontSize.md,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.sm,
+  },
+  commentDate: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.text.light,
   },
 }); 

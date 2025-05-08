@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const products = require("./products");
 const authRoutes = require('./src/routes/authRoutes');
+const { getProductComments, addComment, deleteComment } = require('./comments');
 
 const app = express();
 
@@ -67,6 +68,55 @@ app.get("/products/:id", (req, res) => {
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch product" });
+  }
+});
+
+// Comment routes
+app.get("/products/:productId/comments", (req, res) => {
+  try {
+    const { productId } = req.params;
+    const comments = getProductComments(productId);
+    res.json(comments);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch comments" });
+  }
+});
+
+app.post("/products/:productId/comments", (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { text, rating, userId, userName } = req.body;
+
+    if (!text || !rating || !userId || !userName) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const comment = addComment({
+      productId,
+      text,
+      rating,
+      userId,
+      userName
+    });
+
+    res.status(201).json(comment);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to add comment" });
+  }
+});
+
+app.delete("/products/:productId/comments/:commentId", (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const success = deleteComment(commentId);
+    
+    if (!success) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+    
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete comment" });
   }
 });
 
