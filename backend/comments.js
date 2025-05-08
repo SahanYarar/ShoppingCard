@@ -1,4 +1,3 @@
-
 let comments = [];
 
 
@@ -8,7 +7,8 @@ const generateId = () => {
 
 
 const getProductComments = (productId) => {
-  return comments.filter(comment => comment.productId === productId);
+  const stringProductId = String(productId);
+  return comments.filter(comment => String(comment.productId) === stringProductId);
 };
 
 

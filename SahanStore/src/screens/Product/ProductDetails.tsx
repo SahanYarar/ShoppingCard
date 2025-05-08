@@ -24,37 +24,19 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
   const { user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const response = await fetch(`${API_URL}/products/${productId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setProduct(data);
-        // Fetch comments for the product
-        const commentsResponse = await fetch(`${API_URL}/products/${productId}/comments`);
-        if (commentsResponse.ok) {
-          const commentsData = await commentsResponse.json();
-          setComments(commentsData);
-        }
-      } catch (error) {
-        console.error('Error fetching product:', error);
-        setError(error instanceof Error ? error.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [productId]);
-
   const handleAddComment = async () => {
     if (!user || !newComment.trim()) return;
 
     setCommentLoading(true);
     try {
+      console.log('Sending comment:', {
+        text: newComment,
+        rating,
+        userId: user.id,
+        userName: user.name,
+        productId
+      });
+
       const response = await fetch(`${API_URL}/products/${productId}/comments`, {
         method: 'POST',
         headers: {
@@ -68,11 +50,21 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
         }),
       });
 
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         const comment = await response.json();
-        setComments([...comments, comment]);
+        console.log('Received comment from server:', comment);
+        
+        // Clear the input and reset rating
         setNewComment('');
         setRating(5);
+        
+        // Refresh comments from server
+        await refreshComments();
+      } else {
+        const errorData = await response.json();
+        console.error('Error response from server:', errorData);
       }
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -80,6 +72,52 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
       setCommentLoading(false);
     }
   };
+
+  const refreshComments = async () => {
+    try {
+      console.log('Fetching comments for product:', productId);
+      const commentsResponse = await fetch(`${API_URL}/products/${productId}/comments`);
+      console.log('Comments response status:', commentsResponse.status);
+      
+      if (commentsResponse.ok) {
+        const commentsData = await commentsResponse.json();
+        console.log('Fetched comments:', commentsData);
+        setComments(commentsData);
+      } else {
+        console.error('Failed to fetch comments:', await commentsResponse.text());
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`${API_URL}/products/${productId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setProduct(data);
+        
+        await refreshComments();
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setError(error instanceof Error ? error.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
+  useEffect(() => {
+    if (productId) {
+      refreshComments();
+    }
+  }, [productId]);
 
   const handleAddToCart = () => {
     if (product) {
@@ -197,27 +235,31 @@ export default function ProductDetails({ productId }: ProductDetailsProps) {
           )}
 
           <View style={styles.commentsList}>
-            {comments.map((comment) => (
-              <View key={comment.id} style={styles.commentItem}>
-                <View style={styles.commentHeader}>
-                  <Text style={styles.commentUserName}>{comment.userName}</Text>
-                  <View style={styles.commentRating}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Ionicons
-                        key={star}
-                        name={star <= comment.rating ? "star" : "star-outline"}
-                        size={16}
-                        color={theme.colors.primary}
-                      />
-                    ))}
+            {comments && comments.length > 0 ? (
+              comments.map((comment) => (
+                <View key={comment.id} style={styles.commentItem}>
+                  <View style={styles.commentHeader}>
+                    <Text style={styles.commentUserName}>{comment.userName}</Text>
+                    <View style={styles.commentRating}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Ionicons
+                          key={star}
+                          name={star <= comment.rating ? "star" : "star-outline"}
+                          size={16}
+                          color={theme.colors.primary}
+                        />
+                      ))}
+                    </View>
                   </View>
+                  <Text style={styles.commentText}>{comment.text}</Text>
+                  <Text style={styles.commentDate}>
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </Text>
                 </View>
-                <Text style={styles.commentText}>{comment.text}</Text>
-                <Text style={styles.commentDate}>
-                  {new Date(comment.createdAt).toLocaleDateString()}
-                </Text>
-              </View>
-            ))}
+              ))
+            ) : (
+              <Text style={styles.noCommentsText}>No comments yet. Be the first to comment!</Text>
+            )}
           </View>
         </View>
       </View>
@@ -334,21 +376,27 @@ const styles = StyleSheet.create({
   },
   commentsSection: {
     marginTop: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
   },
   addCommentContainer: {
     marginBottom: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
   },
   commentInput: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
     borderRadius: theme.borderRadius.md,
     padding: theme.spacing.md,
     minHeight: 100,
     textAlignVertical: 'top',
     marginBottom: theme.spacing.md,
+    color: theme.colors.text.primary,
   },
   ratingContainer: {
     flexDirection: 'row',
     marginBottom: theme.spacing.md,
+    justifyContent: 'center',
   },
   addCommentButton: {
     backgroundColor: theme.colors.primary,
@@ -382,6 +430,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
   },
   commentHeader: {
     flexDirection: 'row',
@@ -405,5 +454,12 @@ const styles = StyleSheet.create({
   commentDate: {
     fontSize: theme.typography.fontSize.sm,
     color: theme.colors.text.light,
+  },
+  noCommentsText: {
+    textAlign: 'center',
+    color: theme.colors.text.light,
+    fontSize: theme.typography.fontSize.md,
+    fontStyle: 'italic',
+    marginTop: theme.spacing.md,
   },
 }); 

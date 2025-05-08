@@ -71,13 +71,16 @@ app.get("/products/:id", (req, res) => {
   }
 });
 
-// Comment routes
+
 app.get("/products/:productId/comments", (req, res) => {
   try {
     const { productId } = req.params;
+    console.log('Getting comments for product:', productId);
     const comments = getProductComments(productId);
+    console.log('Found comments:', comments);
     res.json(comments);
   } catch (error) {
+    console.error('Error fetching comments:', error);
     res.status(500).json({ error: "Failed to fetch comments" });
   }
 });
@@ -86,8 +89,17 @@ app.post("/products/:productId/comments", (req, res) => {
   try {
     const { productId } = req.params;
     const { text, rating, userId, userName } = req.body;
+    
+    console.log('Adding comment:', {
+      productId,
+      text,
+      rating,
+      userId,
+      userName
+    });
 
     if (!text || !rating || !userId || !userName) {
+      console.log('Missing required fields:', { text, rating, userId, userName });
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -99,8 +111,10 @@ app.post("/products/:productId/comments", (req, res) => {
       userName
     });
 
+    console.log('Added comment:', comment);
     res.status(201).json(comment);
   } catch (error) {
+    console.error('Error adding comment:', error);
     res.status(500).json({ error: "Failed to add comment" });
   }
 });
